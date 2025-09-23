@@ -1,17 +1,47 @@
-# ---- Build Stage ----
-FROM gradle:8.10.2-jdk17 AS builder
+#FROM eclipse-temurin:21-jdk
+#
+#WORKDIR /add
+#
+#COPY build/libs/*.jar app.jar
+#
+#EXPOSE 8080
+#
+#CMD ["java", "-jar", "app.jar"]
+
+
+
+# ===== Stage 1: Build =====
+FROM eclipse-temurin:21-jdk AS build
+
 WORKDIR /app
 
-# Copy Gradle wrapper and config
-COPY gradlew ./
-COPY build.gradle settings.gradle ./
-COPY gradle ./gradle
+# Copy Gradle wrapper & build scripts first (for caching)
+COPY gradlew .
+COPY gradle gradle
+COPY build.gradle .
+COPY settings.gradle .
 
-# Make sure gradlew is executable
+# Make gradlew executable
 RUN chmod +x gradlew
 
-# Copy the rest of the project
-COPY . .
+# Download dependencies (caches this step)
+RUN ./gradlew dependencies --no-daemon || return 0
 
-# Build Spring Boot fat JAR
-RUN ./gradlew clean bootJar -x test
+# Copy the rest of the source code
+COPY src src
+
+# Build the JAR
+RUN ./gradlew clean bootJar --no-daemon
+
+# ===== Stage 2: Run =====
+FROM eclipse-temurin:21-jdk
+
+WORKDIR /app
+
+# Copy JAR from build stage
+COPY --from=build /app/build/libs/*.jar app.jar
+
+# Let Render/Heroku/etc set PORT, fallback to 8080
+EXPOSE 8080
+
+ENTRYPOINT ["java", "-jar", "app.jar"]
