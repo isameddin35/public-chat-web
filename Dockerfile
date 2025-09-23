@@ -2,11 +2,14 @@
 FROM gradle:8.10.2-jdk17 AS builder
 WORKDIR /app
 
-# Copy Gradle files first (for caching dependencies)
+# Copy Gradle wrapper and files first (for caching dependencies)
 COPY build.gradle settings.gradle gradlew ./
 COPY gradle ./gradle
 
-# Download dependencies
+# Make gradlew executable
+RUN chmod +x gradlew
+
+# Download dependencies (optional optimization)
 RUN ./gradlew dependencies || return 0
 
 # Copy the rest of the project
