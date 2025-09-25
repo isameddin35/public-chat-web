@@ -2,7 +2,9 @@ package com.isaqurbanov.web_socket_chat.model;
 
 public class ChatMessage {
     private String sender;
+    private String recipient;
     private String content;
+
 
     public String getSender() {
         return sender;
@@ -10,6 +12,14 @@ public class ChatMessage {
 
     public void setSender(String sender) {
         this.sender = sender;
+    }
+
+    public String getRecipient() {
+        return recipient;
+    }
+
+    public void setRecipient(String recipient) {
+        this.recipient = recipient;
     }
 
     public String getContent() {
