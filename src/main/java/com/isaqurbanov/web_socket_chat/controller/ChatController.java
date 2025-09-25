@@ -19,5 +19,12 @@ public class ChatController {
                 "/queue/private." + chatMessage.getRecipient(),
                 chatMessage
         );
+
+        messagingTemplate.convertAndSend(
+                "/queue/private." + chatMessage.getSender(),
+                chatMessage
+        );
+
+
     }
 }
